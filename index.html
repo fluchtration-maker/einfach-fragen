@@ -2,51 +2,43 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Einfach fragen</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #fff8f0; padding: 40px; }
-        h1 { font-size: 36px; color: #cc6600; }
-        p { font-size: 24px; color: #333; }
-        .knopf { display: block; width: 80%; margin: 15px auto; padding: 25px; font-size: 26px; border: none; border-radius: 15px; background: #ff9933; color: white; cursor: pointer; }
-        .knopf:hover:not(:disabled) { background: #cc6600; }
-        .knopf:disabled { background: #ccc; cursor: not-allowed; }
-        #antwort { margin-top: 30px; font-size: 24px; color: #333; background: #ffe0b2; padding: 20px; border-radius: 15px; display: none; line-height: 1.6; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #fff8f0; padding: 40px; }
+        .btn { width: 300px; padding: 25px; margin: 15px; border: none; border-radius: 15px; background-color: #e67e22; color: white; font-size: 24px; cursor: pointer; transition: 0.3s; }
+        .btn:hover { background-color: #d35400; }
+        #output { margin-top: 25px; padding: 20px; background: white; border-radius: 15px; width: 80%; max-width: 600px; min-height: 100px; display: none; box-shadow: 0 6px 12px rgba(0,0,0,0.1); font-size: 20px; line-height: 1.5; color: #333; }
     </style>
 </head>
 <body>
-    <h1>Einfach fragen</h1>
-    <p>Was möchtest du heute tun?</p>
-    <button class="knopf" onclick="frage('brief')">📝 Brief schreiben</button>
-    <button class="knopf" onclick="frage('foto')">📸 Foto verbessern</button>
-    <button class="knopf" onclick="frage('frage')">❓ Frage stellen</button>
-    <button class="knopf" onclick="frage('spiel')">🎮 Spielen</button>
-    <button class="knopf" onclick="frage('reden')">💬 Einfach reden</button>
-    <div id="antwort"></div>
+    <h1 style="color: #cc6600;">Einfach fragen</h1>
+    <p style="font-size: 24px;">Was möchtest du heute tun?</p>
+    
+    <button class="btn" onclick="askAI('Schreib einen kurzen, lustigen Brief über einen Hans, der nachts Webseiten baut.')">📝 Brief schreiben</button>
+    <button class="btn" onclick="alert('Foto-Funktion kommt bald!')">📷 Foto verbessern</button>
+    <button class="btn" onclick="alert('Frage-Funktion kommt bald!')">❓ Frage stellen</button>
+    <button class="btn" onclick="alert('Spiele-Funktion kommt bald!')">🎮 Spielen</button>
+
+    <div id="output"></div>
 
     <script>
-        const prompts = {
-            brief: "Der Nutzer möchte einen Brief schreiben. Begrüße ihn herzlich auf Deutsch und frag, was für einen Brief er schreiben möchte. Maximal 3 Sätze.",
-            foto: "Der Nutzer möchte ein Foto verbessern. Gib ihm auf Deutsch freundliche Tipps und frag, was er verbessern möchte. Maximal 3 Sätze.",
-            frage: "Der Nutzer möchte eine Frage stellen. Begrüße ihn herzlich auf Deutsch und frag, was ihn beschäftigt. Maximal 2 Sätze.",
-            spiel: "Der Nutzer möchte spielen. Schlage 3 einfache Chat-Spiele auf Deutsch vor. Maximal 4 Sätze.",
-            reden: "Der Nutzer möchte einfach reden. Begrüße ihn herzlich auf Deutsch und frag, wie es ihm geht. Maximal 2 Sätze."
-        };
+        async function askAI(promptText) {
+            const outputDiv = document.getElementById('output');
+            outputDiv.style.display = 'block';
+            outputDiv.innerText = 'KI denkt nach... einen Moment...';
 
-        async function frage(art) {
-            const box = document.getElementById('antwort');
-            const knoepfe = document.querySelectorAll('.knopf');
-            knoepfe.forEach(k => k.disabled = true);
-            box.style.display = 'block';
-            box.innerHTML = '⏳ Ich denke nach…';
-
-            const res = await fetch('/.netlify/functions/fragen', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: prompts[art] })
-            });
-            const data = await res.json();
-            box.innerHTML = data.antwort || '⚠️ Etwas ist schiefgelaufen.';
-            knoepfe.forEach(k => k.disabled = false);
+            try {
+                const response = await fetch('/.netlify/functions/fragen', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: promptText })
+                });
+                const data = await response.json();
+                outputDiv.innerText = data.reply || 'Keine Antwort erhalten.';
+            } catch (error) {
+                outputDiv.innerText = 'Fehler bei der Verbindung: ' + error.message;
+            }
         }
     </script>
 </body>
